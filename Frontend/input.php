@@ -1,6 +1,15 @@
 <?php
 session_start();
 
+// Periksa apakah dataid ada di URL
+$dataid = $_GET['dataid'] ?? null;
+
+if ($dataid === null) {
+    // Jika dataid tidak ada, redirect ke halaman input_awal.php dengan pesan error
+    header('Location: input_awal.php?error=Data ID tidak ditemukan');
+    exit();
+}
+
 // Ambil data pengusul dari session
 $data_pengusul = $_SESSION['data_pengusul'] ?? [];
 
@@ -10,14 +19,14 @@ unset($_SESSION['data_pengusul']);
 include '../koneksi.php';
 
 // Ambil data dosen
-$dosen_result = $conn->query("SELECT * FROM data_pribadi_dosen WHERE dataid = '{$_GET['dataid']}'");
+$dosen_result = $conn->query("SELECT * FROM data_pribadi_dosen WHERE dataid = '$dataid'");
 while ($row = $dosen_result->fetch_assoc()) {
     $row['role'] = 'Dosen';
     $data_pengusul[] = $row;
 }
 
 // Ambil data mahasiswa
-$mhs_result = $conn->query("SELECT * FROM data_pribadi_mahasiswa WHERE dataid = '{$_GET['dataid']}'");
+$mhs_result = $conn->query("SELECT * FROM data_pribadi_mahasiswa WHERE dataid = '$dataid'");
 while ($row = $mhs_result->fetch_assoc()) {
     $row['role'] = 'Mahasiswa';
     $data_pengusul[] = $row;
@@ -44,7 +53,7 @@ while ($row = $mhs_result->fetch_assoc()) {
         <h1 class="text-2xl font-bold mb-6">INPUT SURAT PERMOHONAN HAK CIPTA</h1>
 
         <!-- Tombol Tambah Pengusul -->
-        <a href="dataid.php?dataid=<?= htmlspecialchars($_GET['dataid']) ?>">
+        <a href="dataid.php?dataid=<?= htmlspecialchars($dataid) ?>">
             <button class="bg-green-800 text-white px-4 py-2 rounded-lg mb-6 flex items-center">
                 Tambah Pengusul <i class="fas fa-plus ml-2"></i>
             </button>
@@ -66,7 +75,7 @@ while ($row = $mhs_result->fetch_assoc()) {
                                     <span class="bg-blue-600 text-white px-2 py-1 rounded-full text-sm"><?= htmlspecialchars($pengusul['role']) ?></span>
                                 </div>
                                 <div class="flex space-x-2">
-                                    <a href="edit.php?id=<?= urlencode($pengusul['id']) ?>&role=<?= urlencode($pengusul['role']) ?>&dataid=<?= urlencode($_GET['dataid']) ?>" class="text-gray-500 hover:text-gray-700">
+                                    <a href="edit.php?id=<?= urlencode($pengusul['id']) ?>&role=<?= urlencode($pengusul['role']) ?>&dataid=<?= urlencode($dataid) ?>" class="text-gray-500 hover:text-gray-700">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button 
@@ -88,10 +97,10 @@ while ($row = $mhs_result->fetch_assoc()) {
 
         <!-- Navigasi -->
         <div class="flex justify-between mt-6">
-            <a href="input_awal.php?dataid=<?= htmlspecialchars($_GET['dataid']) ?>">
+            <a href="input_awal.php?dataid=<?= htmlspecialchars($dataid) ?>">
                 <button class="bg-teal-700 text-white px-4 py-2 rounded">SEBELUMNYA</button>
             </a>
-            <a href="preview.php?dataid=<?= htmlspecialchars($_GET['dataid']) ?>">
+            <a href="preview.php?dataid=<?= htmlspecialchars($dataid) ?>">
                 <button class="bg-teal-700 text-white px-6 py-2 rounded">SELANJUTNYA</button>
             </a>
         </div>

@@ -1,12 +1,19 @@
 <?php
 session_start();
 
+// Validasi user login
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../Frontend/login.php?m=nfound');
     exit();
 }
 
-include 'koneksi.php';
+// Koneksi database
+include 'koneksi.php'; // Pastikan ini ada dan benar
+
+// Periksa apakah koneksi berhasil
+if (!$conn) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Simpan data ke session
@@ -32,6 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die("Error preparing statement: " . $conn->error);
+    }
+
     $stmt->bind_param("ssssssss",
         $_POST['jenis_permohonan'],
         $_POST['jenis_ciptaan'],
@@ -45,10 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->execute()) {
         // Redirect ke halaman input selanjutnya
-        header('Location: ../frontend/input.php');
+        header('Location: ../frontend/input.php?dataid=' . urlencode($dataid)); // Pastikan dataid ada
         exit();
     } else {
-        die("Error: " . $conn->error);
+        die("Error: " . $stmt->error);
     }
 } else {
     // Jika bukan POST, tetap bawa data session
