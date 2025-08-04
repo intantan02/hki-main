@@ -13,6 +13,11 @@ if (!isset($_SESSION['input_awal'])) {
     exit();
 }
 
+// Generate dataid if not exists in session
+if (!isset($_SESSION['dataid'])) {
+    $_SESSION['dataid'] = time() . rand(100, 999);
+}
+
 // Koneksi database
 include 'koneksi.php';
 if (!$conn) {
@@ -31,11 +36,11 @@ try {
                 jenis_permohonan, jenis_ciptaan, judul, 
                 uraian_singkat, tanggal_pertama_kali_diumumkan, 
                 kota_pertama_kali_diumumkan, jenis_pendanaan, 
-                jenis_hibah, username, email
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                jenis_hibah, username, email, dataid
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssss",
+    $stmt->bind_param("sssssssssss",
         $input_awal['jenis_permohonan'],
         $input_awal['jenis_ciptaan'],
         $input_awal['judul'],
@@ -45,7 +50,8 @@ try {
         $input_awal['jenis_pendanaan'],
         $input_awal['nama_pendanaan'],
         $_SESSION['username'],
-        $_SESSION['email'] // Pastikan email ada di session
+        $_SESSION['email'], // Pastikan email ada di session
+        $_SESSION['dataid']
     );
 
     // Eksekusi query
@@ -67,9 +73,9 @@ try {
     // Commit transaksi jika semua berhasil
     $conn->commit();
 
-    // Redirect ke halaman berikutnya
+    // Redirect ke halaman berikutnya dengan dataid
     unset($_SESSION['input_awal']); // Bersihkan session jika ada
-    header('Location: ../Frontend/input.php');
+    header('Location: ../Frontend/input.php?dataid=' . urlencode($_SESSION['dataid']));
     exit();
 
 } catch (Exception $e) {

@@ -1,21 +1,19 @@
 <?php
 session_start();
 
-// Validasi user login
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../Frontend/login.php?m=nfound');
     exit();
 }
 
-// Koneksi database
-include 'koneksi.php'; // Pastikan ini ada dan benar
-
-// Periksa apakah koneksi berhasil
-if (!$conn) {
-    die("Koneksi database gagal: " . mysqli_connect_error());
-}
+include 'koneksi.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Generate dataid if not exists in session
+    if (!isset($_SESSION['dataid'])) {
+        $_SESSION['dataid'] = time() . rand(100, 999);
+    }
+    
     // Simpan data ke session
     $_SESSION['input_awal'] = [
         'judul' => $_POST['judul'] ?? '',
@@ -35,15 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Simpan ke database
-    $sql = "INSERT INTO detail_permohonan (jenis_permohonan, jenis_ciptaan, judul, uraian_singkat, tanggal_pertama_kali_diumumkan, kota_pertama_kali_diumumkan, jenis_pendanaan, jenis_hibah)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO detail_permohonan (jenis_permohonan, jenis_ciptaan, judul, uraian_singkat, tanggal_pertama_kali_diumumkan, kota_pertama_kali_diumumkan, jenis_pendanaan, jenis_hibah, dataid)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
-    if ($stmt === false) {
-        die("Error preparing statement: " . $conn->error);
-    }
-
-    $stmt->bind_param("ssssssss",
+    $stmt->bind_param("sssssssss",
         $_POST['jenis_permohonan'],
         $_POST['jenis_ciptaan'],
         $_POST['judul'],
@@ -51,15 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_POST['tanggal_pertama_kali_diumumkan'],
         $_POST['kota_pertama_kali_diumumkan'],
         $_POST['jenis_hibah'],
-        $_POST['nama_pendanaan']
+        $_POST['nama_pendanaan'],
+        $_SESSION['dataid']
     );
 
     if ($stmt->execute()) {
-        // Redirect ke halaman input selanjutnya
-        header('Location: ../frontend/input.php?dataid=' . urlencode($dataid)); // Pastikan dataid ada
+        // Redirect ke halaman input selanjutnya dengan dataid
+        header('Location: ../frontend/input.php?dataid=' . urlencode($_SESSION['dataid']));
         exit();
     } else {
-        die("Error: " . $stmt->error);
+        die("Error: " . $conn->error);
     }
 } else {
     // Jika bukan POST, tetap bawa data session
