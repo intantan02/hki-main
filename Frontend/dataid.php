@@ -1,4 +1,5 @@
 <?php
+include '../Backend/session_check.php';
 $dataid = isset($_GET['dataid']) ? intval($_GET['dataid']) : null;
 ?>
 

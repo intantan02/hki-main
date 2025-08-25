@@ -1,3 +1,6 @@
+<?php
+include '../Backend/session_check.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

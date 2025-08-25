@@ -1,5 +1,5 @@
 <?php
-session_start(); // Pastikan session dimulai
+include '../Backend/session_check.php';
 
 // Ambil data dari session
 $data_pengusul = $_SESSION['data_pengusul'] ?? [];

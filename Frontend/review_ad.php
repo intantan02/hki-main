@@ -1,6 +1,7 @@
 <?php
-
-session_start();
+include '../Backend/session_check.php';
+// Check if user is admin
+checkRole('admin');
 ?>
 <!DOCTYPE html>
 <html lang="id">
