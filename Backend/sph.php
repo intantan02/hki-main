@@ -1,4 +1,5 @@
 <?php  
+include 'session_check.php';
 require('fpdf.php'); 
 $host = "localhost";
 $user = "root"; // Ganti dengan user database
