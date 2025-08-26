@@ -1,6 +1,5 @@
 <?php
 include '../Backend/session_check.php';
-// Check if user is admin
 checkRole('admin');
 ?>
 <!DOCTYPE html>
@@ -11,7 +10,6 @@ checkRole('admin');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
-    <script src="../js/review_ad.js" defer></script>
 </head>
 <body>
 <div class="container my-4">
@@ -48,5 +46,6 @@ checkRole('admin');
         <a href="login.php" class="btn btn-success">SEBELUMNYA</a>
     </div>
 </div>
+    <script src="../js/review_ad.js"></script>
 </body>
 </html>
