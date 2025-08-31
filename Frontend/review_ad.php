@@ -1,6 +1,5 @@
 <?php
 include '../Backend/session_check.php';
-// Check if user is admin
 checkRole('admin');
 ?>
 <!DOCTYPE html>
@@ -11,14 +10,19 @@ checkRole('admin');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
-    <script src="../js/review_ad.js" defer></script>
 </head>
 <body>
-<div class="container my-4">
-    <h3 class="text-center mb-4">DAFTAR PERMOHONAN</h3>
-    <input id="searchInput" class="form-control mb-3" placeholder="Cari Judul..." type="text"/>
+<div class="container my-4 mb-10">
 
-    <div class="table-responsive">
+    <div class="bg-light pt-3 pb-2 mb-2" style="z-index: 1020;">
+        <div class="container justify-content">
+        <h3 class="text-center mb-4">DAFTAR PERMOHONAN</h3>
+        <input id="searchInput" class="form-control mb-3" placeholder="Cari Judul..." type="text"/>
+    </div>
+</div>
+
+
+    <div class="table-responsive" style="max-height: 50vh;">
         <table class="table table-bordered table-striped table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
@@ -48,5 +52,6 @@ checkRole('admin');
         <a href="login.php" class="btn btn-success">SEBELUMNYA</a>
     </div>
 </div>
+    <script src="../js/review_ad.js"></script>
 </body>
 </html>

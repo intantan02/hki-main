@@ -1,10 +1,37 @@
 let CURRENT_PAGE = 1;
+const AUTO_REFRESH_MS = 15000; // auto refresh every 15s
+let autoRefreshTimer = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadUserData(1);
   const searchInput = document.getElementById("searchInput");
-  if (searchInput) searchInput.addEventListener("input", debounce(()=>loadUserData(1), 400));
+  if (searchInput) searchInput.addEventListener("input", debounce(() => loadUserData(1), 400));
+
+  // start periodic refresh so user sees admin updates
+  startAutoRefresh();
+
+  // listen to storage events (useful if admin writes localStorage event)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'hki_status_update') {
+      // refresh current page when a status update is signalled
+      try { loadUserData(CURRENT_PAGE); } catch (err) { console.error(err); }
+    }
+  });
+
+  // also refresh when tab becomes visible
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      try { loadUserData(CURRENT_PAGE); } catch (err) { console.error(err); }
+    }
+  });
 });
+
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  autoRefreshTimer = setInterval(() => {
+    try { loadUserData(CURRENT_PAGE); } catch (e) { console.error(e); }
+  }, AUTO_REFRESH_MS);
+}
 
 function loadUserData(page = 1) {
   CURRENT_PAGE = page;
@@ -27,11 +54,26 @@ function loadUserData(page = 1) {
       const data = res.data || [];
       if (!data.length) {
         tableBody.innerHTML = `<tr><td colspan="8" class="text-center p-6">Tidak ada data</td></tr>`;
-        const p = document.getElementById("paginationUser"); if (p) p.innerHTML = ""; 
+        const p = document.getElementById("paginationUser"); if (p) p.innerHTML = "";
         return;
       }
 
       tableBody.innerHTML = "";
+
+      // status badge helper
+      const statusToBadge = (s) => {
+        const status = (s || 'Diajukan').toString();
+        const map = {
+          'Diajukan': 'bg-yellow-100 text-yellow-800',
+          'Revisi': 'bg-orange-100 text-orange-800',
+          'Terdaftar': 'bg-green-100 text-green-800',
+          'Ditolak': 'bg-red-100 text-red-800',
+          'Pending': 'bg-gray-100 text-gray-800'
+        };
+        const cls = map[status] || 'bg-gray-100 text-gray-800';
+        return `<span class="px-2 py-1 text-xs font-medium rounded ${cls}">${escapeHtml(status)}</span>`;
+      };
+
       data.forEach(row => {
         const files = row.files || {};
 
@@ -62,7 +104,6 @@ function loadUserData(page = 1) {
 
         const contohKarya = files.contoh_karya || files.karya || files.contoh || null;
 
-        // ensure we pass id/dataid/upload_id to delete so backend can handle whichever it expects
         tableBody.innerHTML += `
           <tr class="hover:bg-gray-50">
             <td class="p-3 align-top">
@@ -74,7 +115,7 @@ function loadUserData(page = 1) {
             <td class="p-3 text-center align-top">${makeBtn(files.sp, 'sp')}</td>
             <td class="p-3 text-center align-top">${makeBtn(files.sph, 'sph')}</td>
             <td class="p-3 text-center align-top">${makeBtn(files.bukti, 'bukti')}</td>
-            <td class="p-3 text-center align-top">${escapeHtml(row.status || 'Pending')}</td>
+            <td class="p-3 text-center align-top">${statusToBadge(row.status)}</td>
             <td class="p-3 text-center align-top">
               <div class="flex flex-col gap-2 items-center">
                 <button onclick="location.href='input_awal.php?id=${encodeURIComponent(idVal ?? '')}&dataid=${encodeURIComponent(dataidVal ?? '')}&upload_id=${encodeURIComponent(uploadIdVal ?? '')}&mode=edit'" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs">Edit</button>
@@ -95,7 +136,6 @@ function loadUserData(page = 1) {
     });
 }
 
-// ...rest of file unchanged...
 function openFileByUploadId(uploadId, type) {
   const url = `../Backend/view_file.php?upload_id=${encodeURIComponent(uploadId)}&type=${encodeURIComponent(type)}`;
   window.open(url, '_blank');
