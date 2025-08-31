@@ -36,6 +36,10 @@ $input = [
 // simpan ke session agar form tetap terisi saat berpindah ke langkah selanjutnya (upload)
 $_SESSION['input_awal'] = $input;
 
+// pastikan status selalu tersedia — ambil dari form jika ada, default ke "Diajukan"
+$status = trim($_POST['status'] ?? 'Diajukan');
+if ($status === '') $status = 'Diajukan';
+
 // Validasi minimal
 if ($input['judul'] === '' || $input['jenis_ciptaan'] === '' || $input['kota_pertama_kali_diumumkan'] === '') {
     header('Location: ../Frontend/input_awal.php?m=empty');
@@ -59,9 +63,9 @@ try {
     $stmt->close();
 
     if ($exists) {
-        // UPDATE (tanpa kolom timestamp yang mungkin tidak ada di skema)
+        // UPDATE (tambahkan kolom status agar tidak gagal jika DB memerlukan nilai)
         $sql = "UPDATE detail_permohonan
-                SET jenis_permohonan = ?, jenis_ciptaan = ?, judul = ?, uraian_singkat = ?, tanggal_pertama_kali_diumumkan = ?, kota_pertama_kali_diumumkan = ?, jenis_pendanaan = ?, jenis_hibah = ?
+                SET jenis_permohonan = ?, jenis_ciptaan = ?, judul = ?, uraian_singkat = ?, tanggal_pertama_kali_diumumkan = ?, kota_pertama_kali_diumumkan = ?, jenis_pendanaan = ?, jenis_hibah = ?, status = ?
                 WHERE id = ?";
         $stmt = $conn->prepare($sql);
         if (!$stmt) throw new Exception('DB prepare failed: ' . $conn->error);
@@ -73,9 +77,9 @@ try {
         $v6 = $input['kota_pertama_kali_diumumkan'];
         $v7 = $input['jenis_pendanaan'];
         $v8 = $input['nama_pendanaan'];
-        // 8 string params + 1 integer id
+        // 9 string params (v1..v8 + status) + 1 integer id
         $stmt->bind_param(
-            "ssssssssi",
+            "sssssssssi",
             $v1,
             $v2,
             $v3,
@@ -84,6 +88,7 @@ try {
             $v6,
             $v7,
             $v8,
+            $status,
             $existingId
         );
         if (!$stmt->execute()) {
@@ -93,9 +98,9 @@ try {
         }
         $stmt->close();
     } else {
-        // INSERT
-        $sql = "INSERT INTO detail_permohonan (jenis_permohonan, jenis_ciptaan, judul, uraian_singkat, tanggal_pertama_kali_diumumkan, kota_pertama_kali_diumumkan, jenis_pendanaan, jenis_hibah, dataid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // INSERT (sertakan kolom status supaya INSERT tidak gagal jika kolom tidak punya default)
+        $sql = "INSERT INTO detail_permohonan (jenis_permohonan, jenis_ciptaan, judul, uraian_singkat, tanggal_pertama_kali_diumumkan, kota_pertama_kali_diumumkan, jenis_pendanaan, jenis_hibah, status, dataid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         if (!$stmt) throw new Exception('DB prepare failed: ' . $conn->error);
         $v1 = $input['jenis_permohonan'];
@@ -106,9 +111,9 @@ try {
         $v6 = $input['kota_pertama_kali_diumumkan'];
         $v7 = $input['jenis_pendanaan'];
         $v8 = $input['nama_pendanaan'];
-        // 8 string params + 1 integer dataid
+        // 9 string params (v1..v8 + status) + 1 integer dataid
         $stmt->bind_param(
-            "ssssssssi",
+            "sssssssssi",
             $v1,
             $v2,
             $v3,
@@ -117,6 +122,7 @@ try {
             $v6,
             $v7,
             $v8,
+            $status,
             $dataid
         );
         if (!$stmt->execute()) {

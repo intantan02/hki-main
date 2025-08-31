@@ -23,7 +23,7 @@ try {
 
     $user_id = (int) $_SESSION['user_id'];
     $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-    $limit = 10; // increase if you want more rows per page
+    $limit = 5; // increase if you want more rows per page
     $offset = ($page - 1) * $limit;
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
@@ -46,8 +46,8 @@ try {
     $totalRows = (int) ($cntRow['total'] ?? 0);
     $totalPages = $totalRows ? (int) ceil($totalRows / $limit) : 1;
 
-    // Fetch details (no 'status' column)
-    $sql = "SELECT id AS detail_id, dataid, judul, jenis_ciptaan, created_at
+    // Fetch details (now includes status)
+    $sql = "SELECT id AS detail_id, dataid, judul, jenis_ciptaan, status, created_at
             FROM detail_permohonan
             WHERE {$where}
             ORDER BY created_at DESC
@@ -78,18 +78,21 @@ try {
         }
     }
 
-    // Build response
+    // Build response -- use status from detail_permohonan (fallback to 'Diajukan')
     $out = [];
     foreach ($details as $d) {
         $did = $d['dataid'];
         $up = isset($uploadsByDataid[$did]) ? $uploadsByDataid[$did] : null;
+
+        $statusVal = trim((string)($d['status'] ?? ''));
+        if ($statusVal === '') $statusVal = 'Diajukan';
 
         $out[] = [
             'id' => (int)$d['detail_id'],
             'dataid' => $d['dataid'],
             'judul' => $d['judul'],
             'jenis_ciptaan' => $d['jenis_ciptaan'],
-            'status' => 'Pending',
+            'status' => $statusVal,
             'created_at' => $d['created_at'],
             'upload_date' => $up['uploaded_at'] ?? null,
             'files' => [
